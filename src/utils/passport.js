@@ -8,14 +8,21 @@ const db = require('./db'); // MySQL connection pool
 
 // 序列化, 把使用者 id 寫入 session 
 // 當用戶成功登入（通過任何 Passport 策略, 例如 Google）後, Passport 會調用 serializeUser 方法
+/**
+ * @param {object} user - 這玩意是從下面 GoogleStrategy 那邊得到的
+*/
 passport.serializeUser((user, done) => done(null, user.id));
 
 // 反序列化, 透過使用者 id 到 User 資料庫中提取使用者資料
 // 因為 javascript 是 single thread, 所以沒使用非同步函數 (async) 的話有可能會造成阻塞主執行緒, 
 // 就跟我昨天拉屎一樣, 通通塞住, 幹
-passport.deserializeUser(async (id, done) => {
+// 只要 serializeUser 是傳 user.user_id 那 deserializeUser 也就應該接受這個 user_id
+passport.deserializeUser(async (user_id, done) => {
   try {
-    const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
+    const [rows] = await db.query(
+      'SELECT * FROM users WHERE user_id = ?',
+      [user_id]
+    );
     done(null, rows[0] || false);
   } catch (err) {
     done(err);
@@ -43,6 +50,7 @@ async (_, __, profile, done) => {
     // 先查詢是否有此估狗使用者
     let [rows] = await db.query('SELECT * FROM users WHERE provider_id = ?', [profile.id]);
     let user = rows[0];
+    // console.log('profile.id:', profile.id);
     if (!user) {
       // 沒的話就新增一筆進去
       const [result] = await db.query(
@@ -54,14 +62,17 @@ async (_, __, profile, done) => {
           "google"
         ]
       );
+      // 把剛剛從 google 取得的一堆使用者資料 & 剛剛 insert 進去所生成的使用者 id 
+      // 通通寫進user obj裡 供 serializeUser 作使用
       user = { 
-        id: result.insertId, 
+        user_id: result.insertId, 
         provider_id: profile.id, 
         name: profile.displayName, 
         email: profile.emails?.[0]?.value || null,
         provider: "google"
       };
-    }
+    };
+    // console.log("userid:", user.user_id);
     done(null, user);
   } catch(err) {
     done(err);

@@ -2,7 +2,7 @@
 skinparam linetype ortho
 hide circle
 
-entity "Users" as U {
+entity "users" as U {
   *user_id : PK
   --
   *name
@@ -13,7 +13,7 @@ entity "Users" as U {
   email_verified
 }
 
-entity "Classrooms" as C {
+entity "classrooms" as C {
   *classroom_id : PK
   --
   *name
