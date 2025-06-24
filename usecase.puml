@@ -1,0 +1,43 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor teacher
+actor student
+actor pa
+
+rectangle "myscore" {
+    usecase "sign in" as Signin
+    usecase "create class" as CreateClass
+    usecase "edit class" as EditClass
+    usecase "create task" as CreateTask
+    usecase "edit task" as EditTask
+    usecase "check result" as CheckResult
+    
+
+    usecase "join class" as JoinClass
+    usecase "submit task" as SubmitTask
+    usecase "Assessment task" as AssessmentTask
+    usecase "Assessment presentation" as AssessmentPresentation
+}
+
+
+teacher --> Signin
+teacher --> CreateClass
+teacher --> EditClass
+teacher --> CreateTask
+teacher --> EditTask
+teacher --> CheckResult
+
+student --> Signin
+student --> JoinClass
+student --> SubmitTask
+student --> AssessmentTask
+student --> AssessmentPresentation
+
+pa --> Signin
+pa --> EditClass
+pa --> EditTask
+pa --> CheckResult
+
+@enduml

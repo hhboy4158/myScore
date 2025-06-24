@@ -1,0 +1,34 @@
+# 套件與第三方程式
+node_modules
+
+# 日誌檔案
+logs
+.log
+npm-debug.log
+
+# 環境變數檔
+.env
+.env
+
+# 編譯與測試輸出
+coverage
+.nyc_output
+build
+dist
+out
+
+# 編輯器與快取
+.eslintcache
+.cache
+.parcel-cache
+.vscode
+.DS_Store
+
+# 進程鎖與 PID
+pids
+.pid
+.seed
+.pid.lock
+
+# TypeScript build info
+.tsbuildinfo

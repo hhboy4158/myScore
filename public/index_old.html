@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>Peer Review</title>
+</head>
+<body>
+  <h1>作業列表</h1>
+  <ul id="assignment-list">載入中…</ul>
+
+  <script>
+    fetch('/api/assignments')
+      .then(res => res.json())
+      .then(data => {
+        const ul = document.getElementById('assignment-list');
+        ul.innerHTML = data.map(a => `<li>${a.id}: ${a.title}</li>`).join('');
+      })
+      .catch(err => {
+        document.getElementById('assignment-list').innerText = '讀取失敗';
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
