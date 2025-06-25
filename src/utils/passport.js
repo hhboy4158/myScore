@@ -11,7 +11,7 @@ const db = require('./db'); // MySQL connection pool
 /**
  * @param {object} user - 這玩意是從下面 GoogleStrategy 那邊得到的
 */
-passport.serializeUser((user, done) => done(null, user.id));
+passport.serializeUser((user, done) => done(null, user.user_id));
 
 // 反序列化, 透過使用者 id 到 User 資料庫中提取使用者資料
 // 因為 javascript 是 single thread, 所以沒使用非同步函數 (async) 的話有可能會造成阻塞主執行緒, 
@@ -72,7 +72,7 @@ async (_, __, profile, done) => {
         provider: "google"
       };
     };
-    // console.log("userid:", user.user_id);
+    console.log("user_id:", user.user_id, "is logged in");
     done(null, user);
   } catch(err) {
     done(err);

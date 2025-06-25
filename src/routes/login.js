@@ -13,6 +13,7 @@ router.get('/login', redirectIfLoggedIn, (req, res) => {
 router.get('/logout', requireLogin, (req, res) => {
     // req.session 存在表示用戶有活動會話
     if (req.session) {
+        console.log("user_id:", req.session.passport.user, "is logged out.")
         req.session.destroy((err) => {
             if (err) {
                 // 如果銷毀會話時發生錯誤，將錯誤傳遞給錯誤處理中介軟體
