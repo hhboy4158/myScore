@@ -1,0 +1,74 @@
+@startuml
+skinparam linetype ortho
+hide circle
+
+entity "users" as U {
+  *user_id : PK
+  --
+  *name
+  *email
+  provider
+  provider_id
+  avatar_url
+  email_verified
+}
+
+entity "classrooms" as C {
+  *classroom_id : PK
+  --
+  *name
+  code
+  *creator_user_id : FK
+  created_at
+}
+
+entity "Memberships" as M {
+  *membership_id : PK
+  --
+  *user_id : FK
+  *classroom_id : FK
+  role
+  joined_at
+}
+
+entity "Assignments" as A {
+  *assignment_id : PK
+  --
+  *classroom_id : FK
+  *created_by : FK
+  title
+  description
+  due_date
+  created_at
+}
+
+entity "Submissions" as S {
+  *submission_id : PK
+  --
+  *assignment_id : FK
+  *student_id : FK
+  submission_time
+  file_url
+}
+
+entity "Reviews" as R {
+  *review_id : PK
+  --
+  *submission_id : FK
+  *reviewer_id : FK
+  score
+  comments
+  reviewed_at
+}
+
+U ||--o{ C : "建立"  
+U ||--o{ M : "加入"  
+C ||--o{ M : "有成員"  
+C ||--o{ A : "包含"  
+U ||--o{ A : "建立(老師)"  
+A ||--o{ S : "可被繳交"  
+U ||--o{ S : "提交(學生)"  
+S ||--o{ R : "可被評分"  
+U ||--o{ R : "評分者"
+
+@enduml

@@ -1,0 +1,283 @@
+{{!< layouts/main }} <style>
+    .card-img-top { width: 100%; height: 300px; object-fit: cover; }
+    .absolute-center-message { position: absolute; top: 50%; left: 50%; transform:
+    translate(-50%, -50%); width: 80%; max-width: 500px; text-align: center;
+    z-index: 10; }
+    </style>
+    {{!
+    <link href="/css/offcanvas.css" rel="stylesheet"> }}
+
+    <body>
+        <div class="container pt-5 d-flex flex-column min-vh-100">
+            <main role="main" class="container flex-grow-1">
+                {{!-- <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+                    <h3 class="display-4">{{classroomData.name}}</h3>
+                    <p class="lead">
+                        some description whatever
+                    </p>
+                </div>
+                <div class="row mt-5 align-items-center flex-grow-1">
+
+                </div> --}}
+                <div class="container-fluid px-4">
+                    <h1 class="display-4 mt-5">{{ classroomData.name }}</h1>
+                    <ul class="breadcrumb mb-4">
+                        <li class="breadcrumb-item active">教室代碼: {{ classroomData.code }}</li>
+                    </ul>
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-body">a certain card</div>
+                                <div class="card-footer d-flex align-items-center justify-content-between">
+                                    <a class="small text-white stretched-link" href="#">View Details</a>
+                                    <div class="small text-white"><i class="ti-bar-chart-alt"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-body">a certain card 2</div>
+                                <div class="card-footer d-flex align-items-center justify-content-between">
+                                    <a class="small text-white stretched-link" href="#">View Details</a>
+                                    <div class="small text-white"><i class="ti-bar-chart-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-body">a certain card 3</div>
+                                <div class="card-footer d-flex align-items-center justify-content-between">
+                                    <a class="small text-white stretched-link" href="#">View Details</a>
+                                    <div class="small text-white"><i class="ti-bar-chart-alt"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-body">a certain card 4</div>
+                                <div class="card-footer d-flex align-items-center justify-content-between">
+                                    <a class="small text-white stretched-link" href="#">View Details</a>
+                                    <div class="small text-white"><i class="ti-bar-chart-alt"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <i class="ti-bar-chart-alt"></i>
+                                    Radar Chart Example
+                                </div>
+                                <div class="card-body">
+                                    <div class="chartjs-size-monitor">
+                                        <div class="chartjs-size-monitor-expand">
+                                            <div class=""></div>
+                                        </div>
+                                        <div class="chartjs-size-monitor-shrink">
+                                            <div class=""></div>
+                                        </div>
+                                    </div><canvas id="myRadarChart" width="716" height="286"
+                                        style="display: block; width: 716px; height: 286px;"
+                                        class="chartjs-render-monitor"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <i class="ti-bar-chart-alt"></i>
+                                    Line Chart Example
+                                </div>
+                                <div class="card-body">
+                                    <div class="chartjs-size-monitor">
+                                        <div class="chartjs-size-monitor-expand">
+                                            <div class=""></div>
+                                        </div>
+                                        <div class="chartjs-size-monitor-shrink">
+                                            <div class=""></div>
+                                        </div>
+                                    </div><canvas id="myLineChart" width="716" height="286"
+                                        class="chartjs-render-monitor"
+                                        style="display: block; width: 716px; height: 286px;"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="ti-bar-chart-alt"></i>
+                            學生資料
+                        </div>
+                        <div class="card-body">
+                            <div class="datatable-container">
+                                <table id="memberTable" class="table table-hover">
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        </main>
+        </div>
+    </body>
+
+    <!-- 放這裡就放這裡嘛 幹 -->
+    <script src="/js/jquery-3.2.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        
+        $(document).ready(function () {
+            const memberData = {{{json memberData}}};
+            $('#memberTable').DataTable({
+                data: memberData,
+                columns: [
+                    { title: "ID", data: "user_id" },
+                    { title: "姓名", data: "user_name" },
+                    { title: "Email", data: "email" },
+                    { title: "角色", data: "role" }
+                ]
+            });
+        });
+
+
+        const ctx = document.getElementById('myRadarChart');
+        const data = {
+            labels: [
+                '溝通',
+                '創意',
+                '風格',
+                '內容',
+                '表達',
+                '精神'
+            ],
+            datasets: [{
+                label: '班級平均分數',
+                data: [89, 88, 90, 81, 78, 95], // 對應上面 labels 的數值
+                fill: true,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)', // 填充顏色
+                borderColor: 'rgb(255, 99, 132)', // 邊框顏色
+                pointBackgroundColor: 'rgb(255, 99, 132)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(255, 99, 132)'
+            }, {
+                label: '你的分數',
+                data: [5, 3, 10, 6, 8, 8],
+                fill: true,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgb(54, 162, 235)',
+                pointBackgroundColor: 'rgb(54, 162, 235)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(54, 162, 235)'
+            }]
+        };
+
+        // 雷達圖的選項
+        const config = {
+            type: 'radar',
+            data: data,
+            options: {
+                elements: {
+                    line: {
+                        borderWidth: 3
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true
+                        },
+                        suggestedMin: 0, // 建議的最小值
+                        suggestedMax: 100, // 建議的最大值
+                        ticks: {
+                            stepSize: 20 // 刻度間隔
+                        }
+                    }
+                },
+                responsive: true, // 響應式佈局
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '分數雷達圖', // 圖表標題
+                        font: {
+                            size: 18
+                        }
+                    }
+                }
+            }
+        };
+
+        // 折線圖的資料
+        const linedata = {
+            labels: ['一月', '二月', '三月', '四月', '五月', '六月', '七月'],
+            datasets: [{
+                label: '2024年銷售額',
+                data: [65, 59, 80, 81, 56, 55, 40], // 對應上面 labels 的數值
+                fill: false, // 不填充線下面積
+                borderColor: 'rgb(75, 192, 192)', // 線條顏色
+                tension: 0.1 // 線條的彎曲程度，0表示直線，1表示最大彎曲
+            },
+            {
+                label: '2023年銷售額',
+                data: [28, 48, 40, 19, 86, 27, 90],
+                fill: false,
+                borderColor: 'rgb(255, 99, 132)',
+                tension: 0.1
+            }]
+        };
+
+        // 折線圖的選項
+        const lineconfig = {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true, // 響應式佈局
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '分數折線圖', // 圖表標題
+                        font: {
+                            size: 18
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: '能力'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: '分數 (單位: 百萬)'
+                        },
+                        beginAtZero: true // Y軸從0開始
+                    }
+                }
+            }
+        };
+
+        // 創建雷達圖
+        window.onload = function () {
+            const ctx = document.getElementById('myRadarChart').getContext('2d');
+            new Chart(ctx, config);
+            const Linectx = document.getElementById('myLineChart').getContext('2d');
+            new Chart(Linectx, lineconfig);
+        };
+    </script>

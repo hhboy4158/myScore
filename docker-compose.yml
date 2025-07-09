@@ -1,0 +1,48 @@
+services:
+  mysql:
+    image: mysql:8.3
+    environment:
+      MYSQL_ROOT_PASSWORD: exampleRootPass
+      MYSQL_DATABASE: myscore
+      MYSQL_USER: myscore_user
+      MYSQL_PASSWORD: myscore_pass
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  node:
+    build: .
+    image: node:20-alpine
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: mysql
+      DB_USER: myscore_user
+      DB_PASSWORD: myscore_pass
+      DB_DATABASE: myscore
+      DB_PORT: 3306
+      PORT: 3000
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: npm run dev
+    
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql-data:

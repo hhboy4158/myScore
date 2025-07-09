@@ -1,0 +1,88 @@
+{{!< layouts/main }}
+<style>
+  .card-img-top {
+  width: 100%; /* 讓圖片寬度充滿 card */
+  height: 300px; /* 設定固定高度 */
+  object-fit: cover; /* 保持圖片比例並裁剪 */
+}
+.absolute-center-message {
+  position: absolute; /* 相對於最近的定位父元素 */
+  top: 50%; /* 從頂部算 50% */
+  left: 50%; /* 從左側算 50% */
+  transform: translate(-50%, -50%); /* 向上和向左移動自身寬高的一半 */
+  text-align: center;
+  z-index: 10; /* 確保在其他內容之上 */
+  /* background-color: white; /* 可能需要一個背景來遮擋後面的內容 */
+  /* padding: 20px; */
+}
+.full-screen-message { /* 更名為 full-screen-message 以區分用途 */
+  flex-grow: 1; /* 讓它在 flex 容器中彈性成長，佔據所有空間 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  /* 如果需要背景色來遮蓋 footer，可以在這裡加 */
+  /* background-color: white; */
+}
+
+</style>
+
+<body>
+
+    {{!-- <link href="/css/offcanvas.css" rel="stylesheet"> --}}
+    <main role="main" class="container pt-5 d-flex flex-column min-vh-100">
+      {{!-- <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-white rounded " style="width: 48;height: 48">
+        <img class="mr-3" src="/img/burh.png" alt="" width="48" height="48">
+        <div class="lh-100">
+          <h6 class="mb-0 text-white lh-100"></h6>
+        </div>
+      </div> --}}
+        {{#if hasClassroom}}
+        <div class="row mt-5">
+          <div class="col-12 mt-4">
+            <div class="card position-relative" >
+              <img src="/img/PuffClass.jpg" class="card-img-top img-responsive" style="object-fit: cover;" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">我的課程</h5>
+                {{hasClassroom}}
+                <p class="card-text">你所建立，或加入的課程</p>
+                <a href="classroom/myclassroom" class="stretched-link" style=" z-index: 1"></a>
+                {{!-- <a href="#" class="btn btn-primary stretched-link">建立課程</a> --}}
+              </div>
+            </div>
+          </div>
+        </div>
+        {{/if}}
+
+
+        <div class="row mt-5 full-screen-message ">
+          <div class="col-md-6 mb-4">
+            <div class="card position-relative" >
+              <img src="/img/PuffClass.jpg" class="card-img-top img-responsive" style="object-fit: cover;" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">建立課程</h5>
+                <p class="card-text">Create a course, or what else are you even here for?</p>
+                <a href="classroom/create" class="stretched-link" style=" z-index: 1"></a>
+                {{!-- <a href="#" class="btn btn-primary stretched-link">建立課程</a> --}}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-4">
+            <div class="card position-relative" >
+              <img src="/img/godtoneLift.jpg" class="card-img-top img-responsive" style=" object-fit: cover;" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">加入課程</h5>
+                <p class="card-text">Join a course, or you're going to fail. </p>
+                <a href="/" class="stretched-link"></a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+    </main>
+
+
+
+</body>

@@ -1,0 +1,242 @@
+{{!< layouts/main }} <style>
+  .card-img-top {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  }
+
+  .absolute-center-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 500px;
+  text-align: center;
+  z-index: 10;
+  /* background-color: white; */
+  /* padding: 20px; */
+  }
+  </style>
+  {{!--
+  <link href="/css/offcanvas.css" rel="stylesheet"> --}}
+
+  <body>
+    <div class="container pt-5 d-flex flex-column min-vh-100">
+      <main role="main" class="container flex-grow-1">
+        <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+          <h3 class="display-4">我的課程</h3>
+          <p class="lead">
+            some description whatever
+          </p>
+        </div>
+        <div class="row">
+          <div class="col-9 text-left"><a href="/classroom/create" class="btn btn-lg btn-primary">建立課程</a></button>
+          </div>
+          <div class="col-3 text-rignt">
+            <div class="input-group mb-3 input-group-lg">
+              <input type="text" class="form-control" placeholder="加入課程" aria-label="加入課程"
+                aria-describedby="buttonJoin">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" id="buttonJoin">加入</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr>
+        <div id="classroom-list" class="row mt-4 align-items-center flex-grow-1">
+          {{#if classrooms.length}}
+          {{#each classrooms}}
+          <div class="col-md-6 mb-4 pr-4" id="classroom-{{this.code}}">
+            <div class="card">
+              <div class="card-body">
+                <h3 class="card-title">
+                  <div class="row">
+                    <div class="col-8 text-left">
+                      <span>{{this.name}}</span>
+                    </div>
+                    <div class="col-4 text-right"><button class="btn btn-info copy-btn" data-code="{{this.code}}"
+                        data-container="body" data-toggle="popover" data-placement="top"
+                        data-content="{{this.code}} Copied!"><i class="ti-layers-alt"></i>
+                        複製代碼</button></div>
+
+                  </div>
+
+                </h3>
+                <h6 class="card-subtitle mb-2 text-muted">課程代碼: {{this.code}}</h6>
+                <p class="card-text">some description whatever</p>
+                <p class="card-text">建立日期: {{this.created_at}}</p>
+                <div class="row">
+                  <div class="col-8 text-left"><a href="/classroom/{{this.code}}" class="btn btn-outline-primary"><i
+                        class="ti-angle-double-right"></i> 進入課程</a></div>
+                  <div class="col-4 text-right"><button class="btn btn-outline-danger delete-btn"
+                      data-code="{{this.code}}"><i class="ti-trash"></i> 刪除課程</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {{/each}}
+          {{else}}
+          <div id="no-content-message" class="col-md-12 absolute-center-message">
+            <div>
+              <h4 class="mb-3">你還沒有任何課程</h4>
+              <p class="lead mb-4">建立或加入課程 拜託</p>
+            </div>
+          </div>
+          {{/if}}
+        </div>
+      </main>
+    </div>
+    <script src="/js/copytext.js"></script><!-- copy code here -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+
+        // popover init
+        $(function () {
+          $('[data-toggle="popover"]').popover()
+        })
+
+        $('.copy-btn').on('shown.bs.popover', function () {
+          var $this = $(this);
+          // 設定 1 秒後隱藏 Popover
+          setTimeout(function () {
+            $this.popover('hide');
+          }, 1000); // 1000 毫秒 = 1 秒
+        });
+
+        // 刪除功能
+        const classroomList = document.getElementById('classroom-list');
+
+        classroomList.addEventListener('click', (event) => {
+          if (event.target.classList.contains('delete-btn')) {
+            const button = event.target;
+            const classroomCode = button.dataset.code;
+
+            // closest 是 dom 往上找 找到最近的 .card-body
+            const cardBody = button.closest('.card-body');
+            const classroomName = cardBody ? cardBody.querySelector('.card-title span').textContent : '未知班級';
+
+            confirmAndDelete(classroomCode, classroomName);
+          }
+        });
+      });
+
+      /**
+      * 確認和刪除功能
+      * @param {string} classroomCode - 要刪除的班級代碼
+      * @param {string} classroomName - 用來顯示在 alert 的班級名稱
+      */
+      async function confirmAndDelete(classroomCode, classroomName) {
+        const result = await Swal.fire({
+          title: '你確定嗎？',
+          text: `真的要刪除班級：「${classroomName}」嗎?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: '確定',
+          cancelButtonText: '取消',
+          reverseButtons: true,  
+          customClass: {
+            confirmButton: 'btn btn-lg btn-danger',
+            cancelButton: 'btn btn-lg btn-outline-danger'
+          }
+          
+          
+        });
+
+        // 如果 confirmButtonText 被點下去
+        if (result.isConfirmed) {
+          try {
+            const response = await fetch(`/classroom/${classroomCode}`, {
+              method: 'DELETE',
+            });
+
+            // 看 res 給啥訊息, 回傳 200, ok 就會是 true
+            if (response.ok) {
+              Swal.fire(
+                '已刪除！',
+                `班級「${classroomName}」已成功刪除, 跟你那位走了心的女友一樣回不來了`,
+                'success'
+              ).then(() => {
+                window.location.reload();
+              });
+
+
+
+            } else {
+              const errorData = await response.json();
+              Swal.fire(
+                '恭喜! 刪除失敗!',
+                `錯誤：${errorData.message || response.statusText}`,
+                'error'
+              );
+            };
+          } catch (error) {
+            console.error('其他錯誤:', error);
+            Swal.fire(
+              '操作失敗',
+              '我也不知道為啥',
+              'error'
+            );
+          };
+        };
+      };
+
+
+  // 加入課程
+  window.addEventListener("load", function() {
+
+    document.getElementById('buttonJoin').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const input = document.querySelector('input[placeholder="加入課程"]');
+      const classroomCode = input.value.trim();
+
+      // console.log(classroomCode);
+      const res = await fetch('/membership', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classroomCode }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        Swal.fire(
+          '加入成功！',
+          `已經成功加入 ` + data.classroom_name,
+          'success'
+        ).then(() => {
+          window.location.href = "/classroom/" + data.classroom_code;
+        });
+        // alert(data.classroom_name + '加入成功！');
+        
+        // 或者導向到教室頁面
+      } else {
+        Swal.fire(
+          '加入失敗',
+          data.message,
+          'error'
+        );
+      }
+    });
+    
+  });
+
+    </script>
+  </body>
+
+  {{!-- 棄用 --}}
+  {{!-- <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1050;">
+    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000" id="copySuccessToast">
+      <div class="toast-header">
+        <strong class="mr-auto">通知</strong>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="toast-body" id="toastBodyMessage">
+      </div>
+    </div>
+  </div> --}}
