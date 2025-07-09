@@ -3,11 +3,6 @@ const classroomModel = require('../models/classroomModel');
 const membershipModel = require('../models/membershipModel');
 /**
  * 確認該動作只有此課堂的成員才可以繼續執行
- *
- * @param {*} req
- * @param {*} res
- * @param {*} next
- * @return {*} 
  */
 async function ensureClassroomMembership(req, res, next) {
   const userId = req.user.user_id; 
@@ -41,7 +36,7 @@ async function ensureClassroomMembership(req, res, next) {
       });
     }
 
-    // 如果通過驗證，把完整的教室資料存進 req 供後續的 controller 使用
+    // 如果通過驗證 把完整的教室資料存進 req 供後續的 controller 使用
     req.classroom = classroom;
 
     next();

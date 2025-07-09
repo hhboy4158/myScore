@@ -42,17 +42,23 @@ exports.joinClassroom = async (req, res) => {
  * @param {*} res
  * @return {*} 
  */
-exports.kickMember = async (req, res) => {
-  try {
-    const teacherId = req.user.user_id;
-    const { classroom_id, user_id: targetUserId } = req.body;
+exports.handleRemoveMember = async (req, res) => {
+  const { classroomId, userId } = req.params;
+  const requestingUserId = req.user.user_id;
 
-    // 可加上額外檢查：確認 req.user 有權限踢人
-    const success = await Membership.remove(targetUserId, classroom_id);
-    if (success) return res.json({ success: true });
-    res.status(400).json({ success: false, message: '移除失敗或本身不在此課堂' });
+  try {
+    // 權限檢查已由 ensureTeacher 中介軟體完成
+    // 這裡可以加上額外邏輯，例如：老師不能移除自己
+    if (Number(userId) === requestingUserId) {
+      return res.status(400).json({ success: false, message: '你不能移除自己' });
+    }
+
+    const wasRemoved = await membershipsService.removeMember(userId, classroomId);
+    if (wasRemoved) return res.json({ success: true });
+
+    res.status(404).json({ success: false, message: '找不到該成員或已被移除' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: '伺服器錯誤' });
+    res.status(500).json({ success: false, message: '伺服器發生錯誤' });
   }
 };

@@ -1,3 +1,6 @@
+CREATE DATABASE `myscore` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `myscore`;
+
 CREATE TABLE `assignments` (
   `assignment_id` int NOT NULL AUTO_INCREMENT,
   `classroom_id` int NOT NULL,
@@ -31,6 +34,7 @@ CREATE TABLE `memberships` (
   `classroom_id` int NOT NULL,
   `joined_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `role` enum('teacher','student') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'teacher',
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`membership_id`),
   UNIQUE KEY `unique_membership` (`user_id`,`classroom_id`),
   KEY `classroom_id` (`classroom_id`),

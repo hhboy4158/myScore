@@ -110,6 +110,10 @@
                             <i class="ti-bar-chart-alt"></i>
                             學生資料
                         </div>
+                        <div class="card-header">
+                            {{!-- 把 classroomId 存在一個隱藏的元素裡，方便 JS 抓取 --}}
+                            <input type="hidden" id="classroomId" value="{{classroomData.classroom_id}}">
+                        </div>
                         <div class="card-body">
                             <div class="datatable-container">
                                 <table id="memberTable" class="table table-hover">
@@ -128,20 +132,87 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        
         $(document).ready(function () {
-            const memberData = {{{json memberData}}};
-            $('#memberTable').DataTable({
+            const memberData = {{{ json memberData }}};
+            const classroomId = $('#classroomId').val();
+            const memberTable = $('#memberTable').DataTable({
                 data: memberData,
                 columns: [
                     { title: "ID", data: "user_id" },
                     { title: "姓名", data: "user_name" },
                     { title: "Email", data: "email" },
-                    { title: "角色", data: "role" }
+                    { title: "角色", data: "role" },
+                    {
+                        title: "操作",
+                        data: null, // 這個欄位不直接對應任何資料屬性
+                        orderable: false, // 讓此欄不可排序
+                        render: function (data, type, row) {
+                            // 'row' 物件包含了該行的所有資料 (user_id, user_name, etc.)
+                            // 我們可以根據角色決定是否顯示按鈕
+                            if (row.role === 'student') {
+                                return `<button class="btn btn-danger btn-sm remove-student-btn" data-user-id="${row.user_id}">移除</button>`;
+                            }
+                            return ''; // 如果是老師 則不顯示按鈕
+                        }
+                    }
                 ]
             });
-        });
 
+            // 使用事件委派來處理動態產生的按鈕
+            $('#memberTable tbody').on('click', '.remove-student-btn', function () {
+                const userId = $(this).data('user-id');
+                const row = $(this).closest('tr');
+                const rowData = memberTable.row(row).data();
+                const userName = rowData.user_name;
+
+                Swal.fire({
+                    title: `確定要移除 ${userName} 嗎？`,
+                    text: '此操作無法復原！',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    reverseButtons: true, 
+                    buttonsStyling: false, 
+                    confirmButtonText: '確定移除',
+                    cancelButtonText: '取消',
+                    customClass: {
+                        confirmButton: 'btn btn-lg btn-danger ml-4', 
+                        cancelButton: 'btn btn-lg btn-outline-danger mr-4' 
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/membership/${classroomId}/${userId}`, {
+                            method: 'DELETE',
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // 從 DataTable 中移除該行並重繪
+                                memberTable.row(row).remove().draw();
+                                Swal.fire(
+                                    '已移除！',
+                                    '學生已成功從課程中移除。',
+                                    'success'
+                                );
+                            } else {
+                                Swal.fire(
+                                    '移除失敗',
+                                    '無法移除學生: ' + data.message,
+                                    'error'
+                                );
+                            }
+                        })
+                        .catch(err => {
+                            console.error('移除學生時發生錯誤:', err);
+                            Swal.fire(
+                                '錯誤',
+                                '移除學生時發生未預期錯誤。',
+                                'error'
+                            );
+                        });
+                    }
+                });
+            });
+        });
 
         const ctx = document.getElementById('myRadarChart');
         const data = {

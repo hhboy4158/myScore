@@ -7,6 +7,6 @@ router.get('/membership',membershipController.showMembershipForm);
 
 router.post('/membership', membershipController.joinClassroom);
 
-router.delete('/membership/:classroomId', ensureTeacher, membershipController.kickMember);
+router.delete('/membership/:classroomId/:userId', ensureTeacher, membershipController.handleRemoveMember);
 
 module.exports = router;

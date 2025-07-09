@@ -108,6 +108,19 @@ const MembershipModel = {
     const [rows] = await db.execute(sql, [user_id]);
     return rows.length > 0;
   },
+
+  /**
+   * 軟刪除一筆成員紀錄 (設定 deleted_at 時間戳)
+   *
+   * @param {number} userId - 要被軟刪除的使用者 ID
+   * @param {number} classroomId - 教室 ID
+   * @returns {Promise<object>} - 資料庫操作結果
+   */
+  async softDelete (userId, classroomId){
+    const sql = 'UPDATE memberships SET deleted_at = NOW() WHERE user_id = ? AND classroom_id = ? AND deleted_at IS NULL';
+    const [result] = await db.execute(sql, [userId, classroomId]);
+    return result;
+  },
 };
 
 module.exports = MembershipModel;

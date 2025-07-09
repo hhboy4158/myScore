@@ -48,5 +48,20 @@ exports.joinClassroom = async (userId, classroomCode) => {
       message: '加入教室時出了不只一些問題, 錯誤: ' + err
     };
   }
-  
+};
+
+
+/**
+ * 從教室移除一名成員 (軟刪除)
+ *
+ * @param {number} targetUserId - 要被移除的使用者 ID
+ * @param {number} classroomId - 教室 ID
+ * @returns {Promise<boolean>} - 回傳操作是否成功
+ */
+exports.removeMember = async (targetUserId, classroomId) => {
+  // 權限檢查已由 ensureTeacher 中介軟體處理。
+  // 未來若有更複雜的商業邏輯 (例如：檢查是否在移除最後一位老師)，可以加在這裡。
+
+  const result = await membershipModel.softDelete(targetUserId, classroomId);
+  return result.affectedRows > 0;
 };
