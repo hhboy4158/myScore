@@ -24,7 +24,7 @@
                     <ul class="breadcrumb mb-4">
                         <li class="breadcrumb-item active">教室代碼: {{ classroomData.code }}</li>
                     </ul>
-                    <div class="row">
+                    {{!-- <div class="row">
                         <div class="col-xl-3 col-md-6">
                             <div class="card mb-4">
                                 <div class="card-body">a certain card</div>
@@ -62,8 +62,8 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
+                    </div> --}}
+                    {{!-- <div class="row">
                         <div class="col-xl-6">
                             <div class="card mb-4">
                                 <div class="card-header">
@@ -104,26 +104,158 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <i class="ti-bar-chart-alt"></i>
-                            學生資料
-                        </div>
-                        <div class="card-header">
-                            {{!-- 把 classroomId 存在一個隱藏的元素裡，方便 JS 抓取 --}}
-                            <input type="hidden" id="classroomId" value="{{classroomData.classroom_id}}">
-                        </div>
-                        <div class="card-body">
-                            <div class="datatable-container">
-                                <table id="memberTable" class="table table-hover">
-                                </table>
+                    </div> --}}
+                    <div class="row">
+                        {{#if (eq userRole 'teacher')}}
+                        <div class="col-xl-8">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <i class="ti-user"></i>
+                                    學生資料
+                                </div>
+                                <div class="card-header">
+                                    {{!-- 把 classroomId 存在一個隱藏的元素裡，方便 JS 抓取 --}}
+                                    <input type="hidden" id="classroomId" value="{{classroomData.classroom_id}}">
+                                </div>
+                                <div class="card-body">
+                                    <div class="datatable-container">
+                                        <table id="memberTable" class="table table-hover">
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <div class="col-xl-4">
+                        {{else}}
+                        <div class="col-xl-12">
+                        {{/if}}
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <div class="row">
+                                        <div class="col-sm-8 text-left">
+                                            <i class="ti-comments"></i>
+                                            互評任務</div>
+                                        <div class="col-sm-4 text-right">
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="card-body">
+                                    {{#if (eq userRole 'teacher')}}
+                                        <button id="createTaskBtn" class="btn btn-block btn-primary mb-3" type="button" data-toggle="modal" data-target="#createTaskModal">
+                                            建立任務</button>
+                                    {{/if}}
+                                    <div id="assignmentList" class="list-group">
+                                        {{#if assignmentData.length}}
+                                            {{#each assignmentData}}
+                                                <a href="/assignments/{{this.assignment_id}}/detail" class="list-group-item list-group-item-action">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h5 class="mb-1"><i class="ti-marker-alt"></i> {{this.name}}</h5>
+                                                        {{!-- <small>3 個月前</small> --}}
+                                                    </div>
+                                                    <p class="mb-1">{{this.description}}</p>
+                                                    <small>截止日期: {{formatDate this.due_date}}</small>
+                                                </a>
+                                            {{/each}}
+                                        {{else}}
+                                            <p class="text-center text-muted">目前沒有任何任務</p>
+                                        {{/if}}
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
                     </div>
                 </div>
+            </main>
         </div>
-        </main>
+        <div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createTaskModalLabel">建立新任務</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="createTaskForm">
+                        <div class="modal-body">
+                            {{!-- 任務類型 --}}
+                            <div class="form-group">
+                                <label for="taskType">任務類型</label>
+                                <select class="form-control" id="taskType" name="taskType" required>
+                                    <option value="presentation">課堂報告</option>
+                                    <option value="homework">作業</option>
+                                </select>
+                            </div>
+
+                            {{!-- 任務名稱 --}}
+                            <div class="form-group">
+                                <label for="taskName">任務名稱</label>
+                                <input type="text" class="form-control" id="taskName" name="taskName" placeholder="例如：期中報告" required>
+                            </div>
+
+                            {{!-- 說明 --}}
+                            <div class="form-group">
+                                <label for="taskDescription">說明</label>
+                                <textarea class="form-control" id="taskDescription" name="taskDescription" rows="3" placeholder="請簡述任務內容"></textarea>
+                            </div>
+
+                            {{!-- 截止日期 --}}
+                            <div class="form-group">
+                                <label for="taskDueDate">截止日期</label>
+                                <input type="datetime-local" class="form-control" id="taskDueDate" name="taskDueDate" required>
+                            </div>
+
+                            <hr>
+
+                            {{!-- 匿名性 (課堂報告) --}}
+                            <div id="anonymity-presentation" class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="true" id="anonymity-presentation-check" name="isAnonymous">
+                                    <label class="form-check-label" for="anonymity-presentation-check">
+                                        啟用匿名互評
+                                    </label>
+                                </div>
+                            </div>
+
+                            {{!-- 匿名性 (作業) --}}
+                            <div id="anonymity-homework" class="form-group" style="display: none;">
+                                <label for="anonymity-homework-select">匿名性</label>
+                                <select class="form-control" id="anonymity-homework-select" name="anonymityLevel">
+                                    <option value="none">不匿名</option>
+                                    <option value="single_blind">單盲 (評分者知道被評者，被評者不知道評分者)</option>
+                                    <option value="double_blind">雙盲 (評分者與被評者互相不知道是誰)</option>
+                                </select>
+                            </div>
+
+                            {{!-- 自評 --}}
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" value="true" id="selfAssessment" name="allowSelfAssessment">
+                                <label class="form-check-label" for="selfAssessment">
+                                    允許自評 (學生可以評自己的報告/作業)
+                                </label>
+                            </div>
+
+                            <hr>
+
+                            {{!-- 評分標準 --}}
+                            <h6>評分標準</h6>
+                            <div id="criteriaContainer">
+                                {{!-- 評分標準項目會由 JS 動態加入這裡 --}}
+                            </div>
+                            <button type="button" id="addCriterionBtn" class="btn btn-sm btn-outline-success mt-2"><i class="ti-plus"></i> 新增評分標準</button>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                            <button type="submit" class="btn btn-primary" id="submitTaskBtn">建立任務</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </body>
 
@@ -133,56 +265,57 @@
 
     <script>
         $(document).ready(function () {
-            const memberData = {{{ json memberData }}};
-            const classroomId = $('#classroomId').val();
-            const memberTable = $('#memberTable').DataTable({
-                data: memberData,
-                columns: [
-                    { title: "ID", data: "user_id" },
-                    { title: "姓名", data: "user_name" },
-                    { title: "Email", data: "email" },
-                    { title: "角色", data: "role" },
-                    {
-                        title: "操作",
-                        data: null, // 這個欄位不直接對應任何資料屬性
-                        orderable: false, // 讓此欄不可排序
-                        render: function (data, type, row) {
-                            // 'row' 物件包含了該行的所有資料 (user_id, user_name, etc.)
-                            // 我們可以根據角色決定是否顯示按鈕
-                            if (row.role === 'student') {
-                                return `<button class="btn btn-danger btn-sm remove-student-btn" data-user-id="${row.user_id}">移除</button>`;
-                            }
-                            return ''; // 如果是老師 則不顯示按鈕
+        const memberData = {{{ json memberData }}};
+
+        const classroomId = $('#classroomId').val();
+        const memberTable = $('#memberTable').DataTable({
+            data: memberData,
+            columns: [
+                // { title: "ID", data: "user_id" },
+                { title: "姓名", data: "user_name" },
+                { title: "Email", data: "email" },
+                { title: "角色", data: "role" },
+                {
+                    title: "操作",
+                    data: null, // 這個欄位不直接對應任何資料屬性
+                    orderable: false, // 讓此欄不可排序
+                    render: function (data, type, row) {
+                        // 'row' 物件包含了該行的所有資料 (user_id, user_name, etc.)
+                        // 我們可以根據角色決定是否顯示按鈕
+                        if (row.role === 'student') {
+                            return `<button class="btn btn-danger btn-sm remove-student-btn" data-user-id="${row.user_id}">移除</button>`;
                         }
+                        return ''; // 如果是老師 則不顯示按鈕
                     }
-                ]
-            });
+                }
+            ]
+        });
 
-            // 使用事件委派來處理動態產生的按鈕
-            $('#memberTable tbody').on('click', '.remove-student-btn', function () {
-                const userId = $(this).data('user-id');
-                const row = $(this).closest('tr');
-                const rowData = memberTable.row(row).data();
-                const userName = rowData.user_name;
+        // 使用事件委派來處理動態產生的按鈕
+        $('#memberTable tbody').on('click', '.remove-student-btn', function () {
+            const userId = $(this).data('user-id');
+            const row = $(this).closest('tr');
+            const rowData = memberTable.row(row).data();
+            const userName = rowData.user_name;
 
-                Swal.fire({
-                    title: `確定要移除 ${userName} 嗎？`,
-                    text: '此操作無法復原！',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    reverseButtons: true, 
-                    buttonsStyling: false, 
-                    confirmButtonText: '確定移除',
-                    cancelButtonText: '取消',
-                    customClass: {
-                        confirmButton: 'btn btn-lg btn-danger ml-4', 
-                        cancelButton: 'btn btn-lg btn-outline-danger mr-4' 
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch(`/membership/${classroomId}/${userId}`, {
-                            method: 'DELETE',
-                        })
+            Swal.fire({
+                title: `確定要移除 ${userName} 嗎？`,
+                text: '此操作無法復原！',
+                icon: 'warning',
+                showCancelButton: true,
+                reverseButtons: true,
+                buttonsStyling: false,
+                confirmButtonText: '確定移除',
+                cancelButtonText: '取消',
+                customClass: {
+                    confirmButton: 'btn btn-lg btn-danger ml-4',
+                    cancelButton: 'btn btn-lg btn-outline-danger mr-4'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/membership/${classroomId}/${userId}`, {
+                        method: 'DELETE',
+                    })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
@@ -209,9 +342,9 @@
                                 'error'
                             );
                         });
-                    }
-                });
+                }
             });
+        });
         });
 
         const ctx = document.getElementById('myRadarChart');
@@ -351,4 +484,132 @@
             const Linectx = document.getElementById('myLineChart').getContext('2d');
             new Chart(Linectx, lineconfig);
         };
+
+        // === 建立任務 Modal 的相關腳本 ===
+        $(document).ready(function() {
+            // 監聽任務類型下拉選單的變化
+            $('#taskType').on('change', function() {
+                const selectedType = $(this).val();
+                if (selectedType === 'presentation') {
+                    $('#anonymity-presentation').show();
+                    $('#anonymity-homework').hide();
+                } else if (selectedType === 'homework') {
+                    $('#anonymity-presentation').hide();
+                    $('#anonymity-homework').show();
+                }
+            }).trigger('change'); // 頁面載入時先觸發一次，確保初始狀態正確
+
+            // --- 評分標準動態新增/刪除 ---
+            let criterionIndex = 0;
+            const criteriaContainer = $('#criteriaContainer');
+
+            // 新增一列評分標準的函式
+            function addCriterionRow() {
+                const criterionHtml = `
+                    <div class="form-row align-items-center mb-2 criterion-row">
+                        <div class="col-6">
+                            <input type="text" class="form-control" name="criteria[${criterionIndex}][name]" placeholder="標準名稱 (例如：內容完整度)" required>
+                        </div>
+                        <div class="col-4">
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="criteria[${criterionIndex}][score]" placeholder="分數" min="1" required>
+                                <div class="input-group-append">
+                                    <span class="input-group-text">分</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-danger btn-sm remove-criterion-btn">移除</button>
+                        </div>
+                    </div>
+                `;
+                criteriaContainer.append(criterionHtml);
+                criterionIndex++;
+            }
+
+            // 點擊按鈕新增一列
+            $('#addCriterionBtn').on('click', addCriterionRow);
+
+            // 使用事件委派來處理移除按鈕的點擊事件
+            criteriaContainer.on('click', '.remove-criterion-btn', function() {
+                $(this).closest('.criterion-row').remove();
+            });
+
+            // 預設先新增一列，方便使用者操作
+            addCriterionRow();
+
+            // --- 表單提交 ---
+            $('#createTaskForm').on('submit', function(e) {
+                e.preventDefault(); // 防止表單傳統提交
+                const submitBtn = $('#submitTaskBtn');
+                submitBtn.prop('disabled', true).text('建立中...'); // 防止重複提交
+
+                // 1. 手動建立一個乾淨的 payload 物件
+                const classroomId = $('#classroomId').val();
+                const taskType = $('#taskType').val();
+
+                const payload = {
+                    classroomId: classroomId,
+                    taskType: taskType,
+                    taskName: $('#taskName').val(),
+                    taskDescription: $('#taskDescription').val(),
+                    taskDueDate: $('#taskDueDate').val(),
+                    allowSelfAssessment: $('#selfAssessment').is(':checked'),
+                    criteria: []
+                };
+
+                // 2. 根據任務類型處理匿名性
+                if (taskType === 'presentation') {
+                    // 課堂報告只有匿名/不匿名，我們對應到 single_blind / none
+                    payload.anonymityType = $('#anonymity-presentation-check').is(':checked') ? 'single_blind' : 'none';
+                } else { // homework
+                    payload.anonymityType = $('#anonymity-homework-select').val();
+                }
+
+                // 3. 收集所有評分標準
+                $('#criteriaContainer .criterion-row').each(function() {
+                    const name = $(this).find('input[name*="[name]"]').val();
+                    const score = $(this).find('input[name*="[score]"]').val();
+                    if (name && score) {
+                        payload.criteria.push({ name: name, max_score: parseInt(score, 10) });
+                    }
+                });
+
+                // 4. 簡單的前端驗證
+                if (!payload.taskName || !payload.taskDueDate || payload.criteria.length === 0) {
+                    Swal.fire('資料不完整', '請填寫任務名稱、截止日期，並至少建立一個評分標準。', 'warning');
+                    submitBtn.prop('disabled', false).text('建立任務');
+                    return;
+                }
+
+                // 5. 使用 Fetch API 發送請求
+                fetch('/assignments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('成功！', '新任務已成功建立。', 'success').then(() => {
+                            // 成功後可以選擇關閉 modal 並重新整理頁面，或動態新增任務到列表上
+                            $('#createTaskModal').modal('hide');
+                            location.reload(); 
+                        });
+                    } else {
+                        throw new Error(data.message || '建立失敗，請稍後再試');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('發生錯誤', error.message, 'error');
+                })
+                .finally(() => {
+                    // 無論成功或失敗，都恢復按鈕狀態
+                    submitBtn.prop('disabled', false).text('建立任務');
+                });
+            });
+        });
     </script>

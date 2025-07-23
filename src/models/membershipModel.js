@@ -26,11 +26,23 @@ const MembershipModel = {
    * @return {*} 
    */
   async findByUserAndClassroom(user_id, classroom_id) {
-    const sql = `
+
+    if (!classroom_id) {
+      let sql = `
+      SELECT * FROM memberships
+      WHERE user_id = ?
+      LIMIT 1
+      `;
+      const [rows] = await db.execute(sql, [user_id]);
+      return rows[0] || null;
+    };
+
+    let sql = `
       SELECT * FROM memberships
       WHERE user_id = ? AND classroom_id = ?
       LIMIT 1
     `;
+
     const [rows] = await db.execute(sql, [user_id, classroom_id]);
     return rows[0] || null;
   },
@@ -91,6 +103,30 @@ const MembershipModel = {
   //   const [result] = await db.execute(sql, [user_id, classroom_id]);
   //   return result.affectedRows > 0;
   // },
+
+  async findAllMembersById(id) {
+    try{
+      const sql = `
+      SELECT m.*, u.name
+      FROM memberships as m
+      INNER JOIN users as u ON m.user_id = u.user_id
+      WHERE m.classroom_id = ? AND m.deleted_at IS NULL
+      `;
+
+      // SELECT m.*, u.name, s.score
+      // FROM memberships as m
+      // INNER JOIN users as u ON m.user_id = u.user_id
+      // left JOIN Scores as s ON m.user_id = s.evaluated_user_id
+      // WHERE m.classroom_id = 7 AND m.deleted_at IS NULL
+      const[membershipRows] = await db.query(sql, [id]);
+
+      // console.log("membershipRows: ", membershipRows);
+      return {memberdata: membershipRows || null };
+    } catch(err) {
+      throw(err);
+    };
+    
+  },
 
   /**
    * 查詢該使用者是否存在於任何教室內

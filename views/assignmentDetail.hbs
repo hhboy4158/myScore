@@ -1,0 +1,417 @@
+{{!< layouts/main }} <div class="container pt-5">
+    <div class="row mt-5 mb-5">
+        <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+            <h1 class="display-4">{{assignment.name}}</h1>
+            <p class="lead">
+                {{assignment.description}}
+            </p>
+        </div>
+    </div>
+    <div class="row mt-5 mb-5">
+        {{!-- 左側欄：任務資訊 --}}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="ti-info-alt"></i> 任務資訊</h5>
+                    {{#if (eq userRole 'teacher')}}
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#extendDueDateModal">
+                            延長截止日期
+                        </button>
+                    </div>
+                    {{/if}}
+                </div>
+                {{!-- <div class="card-body"> --}}
+                    {{!-- <h4 class="card-title">{{assignment.name}}</h4>
+                    <p class="card-text">{{assignment.description}}</p> --}}
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>類型:</strong> {{assignment.type}}</li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>截止日期:</strong> {{formatDate assignment.due_date}}</li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>狀態:</strong>
+                            {{#if isPastDue}}
+                            <span class="badge badge-danger">已截止</span>
+                            {{else}}
+                            <span class="badge badge-primary">進行中</span>
+                            {{/if}}
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>匿名性:</strong> {{assignment.anonymity_type}}</li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>允許自評:</strong> {{#if
+                            assignment.allow_self_assessment}}是{{else}}否{{/if}}</li>
+                    </ul>
+                {{!-- </div> --}}
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="ti-check-box"></i> 評分標準</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {{#each criteria}}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{this.name}}
+                        <span class="badge badge-info badge-pill">{{this.max_score}} 分</span>
+                    </li>
+                    {{/each}}
+                </ul>
+            </div>
+
+            {{#if evaluatedUsers.length}}
+            <div class="card mt-4">
+                <div class="card-header">
+                <h5 class="mb-0"><i class="ti-user"></i> Students to Review</h5>    
+                </div>
+                <div class="list-group list-group-flush student-directory" id="student-list">
+                    {{#each evaluatedUsers}}
+                    <a href="#form-for-user-{{this.user_id}}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" data-user-id="{{this.user_id}}">
+                        {{this.user_name}}
+                        {{#if (lookup ../scores this.user_id)}}
+                        <span class="badge badge-success badge-pill">Scored</span>
+                        {{else}}
+                        <span class="badge badge-secondary badge-pill">Pending</span>
+                        {{/if}}
+                    </a>
+                    {{/each}}
+                </div>
+            </div>
+            {{/if}}
+        </div>
+
+        {{!-- 右側欄：主要操作區 --}}
+        <div class="col-md-8">
+            {{#if (eq userRole 'teacher')}}
+            {{!-- 老師視圖 --}}
+            <ul class="nav nav-tabs" id="teacherTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="status-tab" data-toggle="tab" href="#status" role="tab"
+                        aria-controls="status" aria-selected="true">繳交狀況</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="stats-tab" data-toggle="tab" href="#stats" role="tab" aria-controls="stats"
+                        aria-selected="false">統計結果</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="teacherTabContent">
+                <div class="tab-pane fade show active" id="status" role="tabpanel" aria-labelledby="status-tab">
+                    <div class="card card-body mt-3">
+                        <form id="teacher-grading-form">
+                            <p>請為所有學生依據評分標準打上分數。完成後點擊右下角儲存。</p>
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>學生姓名</th>
+                                        {{#each criteria}}
+                                        <th>{{this.name}} ({{this.max_score}}分)</th>
+                                        {{/each}}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#each allMembers.memberdata}}
+                                    {{#if (eq this.role 'student')}} {{!-- 檢查角色是否為學生 --}}
+                                    <tr>
+                                        <td>{{this.name}}</td>
+                                        {{#each ../criteria}} {{!-- 使用 ../ 訪問父級的 criteria --}}
+                                        <td>
+                                            <input class="form-control score-input" type="number"
+                                                name="scores[{{../this.user_id}}][{{this.criterion_id}}]"
+                                                data-user-id="{{../this.user_id}}"
+                                                data-criterion-id="{{this.criterion_id}}"
+                                                min="0" max="{{this.max_score}}" placeholder="0-{{this.max_score}}">
+                                        </td>
+                                        {{/each}}
+                                    </tr>
+                                    {{/if}}
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                            <button type="submit" class="btn btn-success float-right">儲存所有成績</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+                    <div class="card card-body mt-3">
+                        <p>互評完成後，這裡會顯示統計圖表，如分數分佈、班級平均等。</p>
+                        {{!-- 例如：Chart.js 的圖表 --}}
+                    </div>
+                </div>
+            </div>
+            {{else}}
+            {{!-- 學生視圖 --}}
+            <ul class="nav nav-tabs" id="studentTab" role="tablist">
+                {{#if (eq assignment.type 'homework')}}
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="submission-tab" data-toggle="tab" href="#submission" role="tab"
+                        aria-controls="submission" aria-selected="true">我的繳交</a>
+                </li>
+                {{/if}}
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {{#if (eq assignment.type 'presentation')}}active{{/if}}" id="peer-review-tab"
+                        data-toggle="tab" href="#peer-review" role="tab" aria-controls="peer-review"
+                        aria-selected="{{#if (eq assignment.type 'presentation')}}true{{else}}false{{/if}}">待辦互評</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="my-scores-tab" data-toggle="tab" href="#my-scores" role="tab"
+                        aria-controls="my-scores" aria-selected="false">我的分數</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="studentTabContent">
+                {{#if (eq assignment.type 'homework')}}
+                <div class="tab-pane fade show active" id="submission" role="tabpanel" aria-labelledby="submission-tab">
+                    <div class="card card-body mt-3">
+                        <p>這裡會顯示檔案上傳區塊，或已上傳的檔案資訊。</p>
+                    </div>
+                </div>
+                {{/if}}
+                <div class="tab-pane fade {{#if (eq assignment.type 'presentation')}}show active{{/if}}"
+                    id="peer-review" role="tabpanel" aria-labelledby="peer-review-tab">
+                    <div class="card card-body mt-3">
+                        <p>請點擊左側目錄中的學生姓名，跳轉至對應的表單進行評分。</p>
+                        {{#if evaluatedUsers.length}}
+                        {{#each evaluatedUsers}}
+                        <div class="card mb-4" id="form-for-user-{{this.user_id}}">
+                            <div class="card-header">
+                                <h5>評分對象: <strong>{{this.user_name}}</strong></h5>
+                            </div>
+                            <div class="card-body">
+                                <form class="peer-review-form" data-evaluated-user-id="{{this.user_id}}">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>評分標準</th>
+                                                <th style="width: 150px;">分數</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {{#each ../criteria}}
+                                            <tr>
+                                                <td>
+                                                    <label for="score-{{../this.user_id}}-{{this.criterion_id}}">{{this.name}} (最高 {{this.max_score}}分)</label>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control score-input" name="scores[{{@index}}][score]" id="score-{{../this.user_id}}-{{this.criterion_id}}" value="{{lookup (lookup ../../scores ../this.user_id) this.criterion_id}}" min="0" max="{{this.max_score}}" required>
+                                                    <input type="hidden" name="scores[{{@index}}][criterionId]" value="{{this.criterion_id}}">
+                                                </td>
+                                            </tr>
+                                            {{/each}}
+                                        </tbody>
+                                    </table>
+                                    {{#unless ../isPastDue}}
+                                    <button type="submit" class="btn btn-primary float-right">提交對 {{this.user_name}} 的評分</button>
+                                    {{else}}
+                                    <button type="button" class="btn btn-secondary float-right" disabled>已截止</button>
+                                    {{/unless}}
+                                </form>
+                            </div>
+                        </div>
+                        {{/each}}
+                        {{else}}
+                        <p>此教室中沒有其他成員可以評分。</p>
+                        {{/if}}
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="my-scores" role="tabpanel" aria-labelledby="my-scores-tab">
+                    <div class="card card-body mt-3">
+                        <p>互評完成後，這裡會顯示自己的得分與收到的回饋。</p>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+        </div>
+
+        {{#if (eq userRole 'teacher')}}
+        <!-- Extend Due Date Modal -->
+        <div class="modal fade" id="extendDueDateModal" tabindex="-1" aria-labelledby="extendDueDateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="extendDueDateModalLabel">延長截止日期</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="extend-due-date-form">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="new-due-date">新的截止日期</label>
+                                <input type="datetime-local" class="form-control" id="new-due-date" name="newDueDate" value="{{formatForInput assignment.due_date}}" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                            <button type="submit" class="btn btn-primary">儲存變更</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+    </div>
+</div><!-- container -->
+    <script src="/js/jquery-3.2.1.min.js"></script>
+    <script>
+        // 使用 jQuery，因為這是你專案中既有的函式庫
+        $(document).ready(function () {
+            // 從當前 URL 獲取 assignmentId
+            // 假設你的網址是 /assignments/123/detail
+            const pathParts = window.location.pathname.split('/');
+            const assignmentId = pathParts[pathParts.indexOf('assignments') + 1];
+
+            if (!assignmentId) {
+                console.error('無法從 URL 獲取 assignmentId');
+                return;
+            }
+
+            // --- 處理學生互評表單 (一個頁面可能有多個) ---
+            $('.peer-review-form').on('submit', function (event) {
+                event.preventDefault(); // 防止表單傳統提交方式
+
+                const $form = $(this);
+                const evaluatedUserId = $form.data('evaluated-user-id'); // 從 data-* 屬性獲取
+                const serializedData = $form.serializeArray();
+
+                // 1. 建立一個臨時物件來重組分數
+                const tempScores = {};
+
+                // 2. 遍歷序列化後的資料
+                $.each(serializedData, function (i, field) {
+                    // 匹配 name="scores[0][score]" 或 name="scores[0][criterionId]"
+                    const match = field.name.match(/scores\[(\d+)\]\[(score|criterionId)\]/);
+                    if (match) {
+                        const index = match[1];
+                        const key = match[2]; // 'score' or 'criterionId'
+                        const value = field.value;
+
+                        // 如果這個索引的物件還不存在，就建立它
+                        if (!tempScores[index]) {
+                            tempScores[index] = {};
+                        }
+
+                        // 存入 score 或 criterionId
+                        tempScores[index][key] = parseInt(value, 10);
+                    }
+                });
+
+                // 3. 將臨時物件轉換為最終的 scores 陣列
+                const scores = Object.values(tempScores);
+
+                // 4. 檢查是否有未填寫的分數
+                // 這裡的 criteria.length 是由 Handlebars 渲染時寫入的
+                const criteriaCount = {{ criteria.length }};
+                if (scores.length !== criteriaCount) {
+                    alert('請完成所有評分項目！');
+                    return;
+                }
+
+                // 檢查每個分數物件是否都完整
+                for (const score of scores) {
+                    if (isNaN(score.score) || isNaN(score.criterionId)) {
+                        alert('部分評分項目無效，請重新檢查。');
+                        return;
+                    }
+                }
+
+                const payload = {
+                    evaluatedUserId: evaluatedUserId,
+                    scores: scores
+                };
+
+                // --- Debugging ---
+                console.log("準備提交的學生互評資料 (處理後 Payload):", payload);
+                // --- End Debugging ---
+
+                // 使用 Fetch API 提交資料
+                fetch(`/api/assignments/${assignmentId}/reviews`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // 嘗試解析錯誤訊息
+                        return response.json().then(err => { throw new Error(err.message || '提交失敗，伺服器發生錯誤。') });
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    alert('評分已成功提交！');
+                    // 禁用表單或顯示成功訊息
+                    $form.find('button[type="submit"]').prop('disabled', true).text('已提交');
+                    $form.find('input').prop('readonly', true);
+
+                                        // 更新左側目錄的狀態
+                    const $directoryItem = $('.student-directory a[data-user-id="' + evaluatedUserId + '"]');
+                    if ($directoryItem.length) {
+                        const $badge = $directoryItem.find('.badge');
+                        $badge.removeClass('badge-secondary').addClass('badge-success').text('Scored');
+                    }
+                })
+                .catch(error => {
+                    console.error('提交評分時發生錯誤:', error);
+                    alert(`錯誤: ${error.message}`);
+                });
+            });
+
+            // --- 處理老師評分表單 (一個頁面只會有一個) ---
+            $('#teacher-grading-form').on('submit', function (event) {
+                event.preventDefault();
+
+                const scoresByStudent = {};
+                $(this).find('.score-input').each(function () {
+                    const $input = $(this);
+                    if ($input.val() !== '') { // 只收集有填寫的分數
+                        const userId = $input.data('user-id');
+                        const criterionId = $input.data('criterion-id');
+                        if (!scoresByStudent[userId]) {
+                            scoresByStudent[userId] = {};
+                        }
+                        scoresByStudent[userId][criterionId] = parseInt($input.val());
+                    }
+                });
+
+                // --- Debugging ---
+                console.log("準備提交的老師評分資料:", { scoresByStudent });
+                // --- End Debugging ---
+
+                fetch(`/api/assignments/${assignmentId}/grades`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scoresByStudent })
+                })
+                .then(res => res.ok ? res.json() : Promise.reject(res.json()))
+                .then(() => alert('所有成績已成功儲存！'))
+                .catch(errPromise => errPromise.then(err => alert(`錯誤: ${err.message}`)));
+            });
+
+            // --- 處理延長截止日期表單 ---
+            $('#extend-due-date-form').on('submit', function(event) {
+                event.preventDefault();
+                const newDueDate = $(this).find('#new-due-date').val();
+
+                if (!newDueDate) {
+                    alert('請選擇一個新的截止日期。');
+                    return;
+                }
+
+                fetch(`/api/assignments/${assignmentId}/due-date`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dueDate: newDueDate })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.message || '更新失敗') });
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    alert('截止日期已成功更新！');
+                    window.location.reload(); // 重新整理頁面以顯示新日期
+                })
+                .catch(error => {
+                    console.error('更新截止日期時發生錯誤:', error);
+                    alert(`錯誤: ${error.message}`);
+                });
+            });
+        });
+    </script>

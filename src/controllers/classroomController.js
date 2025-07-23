@@ -1,5 +1,7 @@
 // src/controllers/classroomController.js
 const classroomService = require('../services/classroomService');
+const assignmentService = require('../services/assignmentService');
+const membershipModel = require('../models/membershipModel');
 
 /**
  * 課程選單頁面 *棄用*
@@ -45,11 +47,18 @@ exports.showCurrentClassroom = async (req, res) => {
 
     // 透過 Service 取得成員資料
     const memberData = await classroomService.getMembersByClassroomId(classroomData.classroom_id);
+    // 取得當前使用者在此教室的角色
+    const membership = await membershipModel.findByUserAndClassroom(req.user.user_id, classroomData.classroom_id);
+    const userRole = membership ? membership.role : null;
+    // 透過 Service 取得任務資料
+    const assignmentData = await assignmentService.getByClassroomId(classroomData.classroom_id);
 
     res.render('currentClassroom', { 
       title: '教室 - '+ classroomData.name, 
       classroomData: classroomData, 
       memberData: memberData,
+      userRole: userRole,
+      assignmentData: assignmentData,
       user: req.user
     });
   } catch(err){

@@ -40,7 +40,7 @@ exports.joinClassroom = async (userId, classroomCode) => {
     // 上面都沒問題就回傳這個
     return {
       success: true,
-      classroom_name: classroom.classroom_name
+      classroom_name: classroom.name
     };
   } catch (err) {
     return {
